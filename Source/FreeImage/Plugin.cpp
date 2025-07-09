@@ -239,7 +239,9 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			*/
 			s_plugins->AddNode(InitBMP);
 			s_plugins->AddNode(InitICO);
+#if FREEIMAGE_WITH_JPEG
 			s_plugins->AddNode(InitJPEG);
+#endif
 			s_plugins->AddNode(InitJNG);
 			s_plugins->AddNode(InitKOALA);
 			s_plugins->AddNode(InitIFF);
@@ -250,12 +252,16 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitPCX);
 			s_plugins->AddNode(InitPNM, NULL, "PGM", "Portable Greymap (ASCII)", "pgm", "^P2");
 			s_plugins->AddNode(InitPNM, NULL, "PGMRAW", "Portable Greymap (RAW)", "pgm", "^P5");
+#if FREEIMAGE_WITH_PNG
 			s_plugins->AddNode(InitPNG);
+#endif
 			s_plugins->AddNode(InitPNM, NULL, "PPM", "Portable Pixelmap (ASCII)", "ppm", "^P3");
 			s_plugins->AddNode(InitPNM, NULL, "PPMRAW", "Portable Pixelmap (RAW)", "ppm", "^P6");
 			s_plugins->AddNode(InitRAS);
 			s_plugins->AddNode(InitTARGA);
+#if FREEIMAGE_WITH_TIFF
 			s_plugins->AddNode(InitTIFF);
+#endif
 			s_plugins->AddNode(InitWBMP);
 			s_plugins->AddNode(InitPSD);
 			s_plugins->AddNode(InitCUT);
@@ -264,26 +270,32 @@ FreeImage_Initialise(BOOL load_local_plugins_only) {
 			s_plugins->AddNode(InitDDS);
 	        s_plugins->AddNode(InitGIF);
 	        s_plugins->AddNode(InitHDR);
+/* conan: The G3 fax format plugin is deliberately disabled in our build of FreeImage
+   since it requires usage of the vendored copy of libtiff. */
+#if 0
 			s_plugins->AddNode(InitG3);
+#endif
 			s_plugins->AddNode(InitSGI);
-			#if INCLUDE_LIB_OPENEXR
+#if FREEIMAGE_WITH_OPENEXR
 			s_plugins->AddNode(InitEXR);
-			#endif
+#endif
+#if FREEIMAGE_WITH_OPENJPEG
 			s_plugins->AddNode(InitJ2K);
 			s_plugins->AddNode(InitJP2);
+#endif
 			s_plugins->AddNode(InitPFM);
 			s_plugins->AddNode(InitPICT);
-			#if INCLUDE_LIB_RAW
+#if FREEIMAGE_WITH_RAW
 			s_plugins->AddNode(InitRAW);
-			#endif
-			#if INCLUDE_LIB_WEBP
+#endif
+#if FREEIMAGE_WITH_WEBP
 			s_plugins->AddNode(InitWEBP);
-			#endif
-			#if INCLUDE_LIB_JXR
+#endif
+#if FREEIMAGE_WITH_JXR
 #if !(defined(_MSC_VER) && (_MSC_VER <= 1310))
 			s_plugins->AddNode(InitJXR);
 #endif // unsupported by MS Visual Studio 2003 !!!
-			#endif
+#endif
 			
 			// external plugin initialization
 

@@ -19,16 +19,14 @@
 // Use at your own risk!
 // ==========================================================
 
-#if INCLUDE_LIB_WEBP
-
 #include "FreeImage.h"
 #include "Utilities.h"
 
 #include "../Metadata/FreeImageTag.h"
 
-#include "../LibWebP/src/webp/decode.h"
-#include "../LibWebP/src/webp/encode.h"
-#include "../LibWebP/src/webp/mux.h"
+#include <webp/decode.h>
+#include <webp/encode.h>
+#include <webp/mux.h>
 
 // ==========================================================
 // Plugin Interface
@@ -696,5 +694,3 @@ InitWEBP(Plugin *plugin, int format_id) {
 	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 	plugin->supports_no_pixels_proc = SupportsNoPixels;
 }
-
-#endif

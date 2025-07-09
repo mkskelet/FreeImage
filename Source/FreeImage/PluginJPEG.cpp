@@ -35,9 +35,15 @@ extern "C" {
 #undef FAR
 #include <setjmp.h>
 
-#include "../LibJPEG/jinclude.h"
-#include "../LibJPEG/jpeglib.h"
-#include "../LibJPEG/jerror.h"
+#ifndef FALSE
+#define FALSE 0
+#endif
+#ifndef TRUE
+#define TRUE 1
+#endif
+#include <stdio.h>
+#include <jpeglib.h>
+#include <jerror.h>
 }
 
 #include "FreeImage.h"

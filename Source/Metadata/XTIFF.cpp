@@ -29,7 +29,7 @@
 #pragma warning (disable : 4786) // identifier was truncated to 'number' characters
 #endif
 
-#include "../LibTIFF4/tiffiop.h"
+#include <tiffio.h>
 
 #include "FreeImage.h"
 #include "Utilities.h"
@@ -39,6 +39,44 @@
 // ----------------------------------------------------------
 //   Extended TIFF Directory GEO Tag Support
 // ----------------------------------------------------------
+
+// conan: function imported from libtiff/tif_dirinfo.c, in which it is not exported 
+/*
+ * Return size of TIFFDataType in bytes.
+ *
+ * XXX: We need a separate function to determine the space needed
+ * to store the value. For TIFF_RATIONAL values TIFFDataWidth() returns 8,
+ * but we use 4-byte float to represent rationals.
+ */
+int
+FreeImage_TIFFDataSize(TIFFDataType type)
+{
+	switch (type)
+	{
+	case TIFF_BYTE:
+	case TIFF_SBYTE:
+	case TIFF_ASCII:
+	case TIFF_UNDEFINED:
+		return 1;
+	case TIFF_SHORT:
+	case TIFF_SSHORT:
+		return 2;
+	case TIFF_LONG:
+	case TIFF_SLONG:
+	case TIFF_FLOAT:
+	case TIFF_IFD:
+	case TIFF_RATIONAL:
+	case TIFF_SRATIONAL:
+		return 4;
+	case TIFF_DOUBLE:
+	case TIFF_LONG8:
+	case TIFF_SLONG8:
+	case TIFF_IFD8:
+		return 8;
+	default:
+		return 0;
+	}
+}
 
 /**
   Tiff info structure.
@@ -223,6 +261,33 @@ tiff_write_geotiff_profile(TIFF *tif, FIBITMAP *dib) {
 // ----------------------------------------------------------
 //   TIFF EXIF tag reading & writing
 // ----------------------------------------------------------
+
+static uint32 exif_tag_ids[] = {
+  EXIFTAG_EXPOSURETIME, EXIFTAG_FNUMBER, EXIFTAG_EXPOSUREPROGRAM,
+  EXIFTAG_SPECTRALSENSITIVITY, EXIFTAG_ISOSPEEDRATINGS, EXIFTAG_OECF,
+  EXIFTAG_EXIFVERSION, EXIFTAG_DATETIMEORIGINAL, EXIFTAG_DATETIMEDIGITIZED,
+  EXIFTAG_COMPONENTSCONFIGURATION, EXIFTAG_COMPRESSEDBITSPERPIXEL,
+  EXIFTAG_SHUTTERSPEEDVALUE, EXIFTAG_APERTUREVALUE,
+  EXIFTAG_BRIGHTNESSVALUE, EXIFTAG_EXPOSUREBIASVALUE,
+  EXIFTAG_MAXAPERTUREVALUE, EXIFTAG_SUBJECTDISTANCE, EXIFTAG_METERINGMODE,
+  EXIFTAG_LIGHTSOURCE, EXIFTAG_FLASH, EXIFTAG_FOCALLENGTH,
+  EXIFTAG_SUBJECTAREA, EXIFTAG_MAKERNOTE, EXIFTAG_USERCOMMENT,
+  EXIFTAG_SUBSECTIME, EXIFTAG_SUBSECTIMEORIGINAL,
+  EXIFTAG_SUBSECTIMEDIGITIZED, EXIFTAG_FLASHPIXVERSION, EXIFTAG_COLORSPACE,
+  EXIFTAG_PIXELXDIMENSION, EXIFTAG_PIXELYDIMENSION,
+  EXIFTAG_RELATEDSOUNDFILE, EXIFTAG_FLASHENERGY,
+  EXIFTAG_SPATIALFREQUENCYRESPONSE, EXIFTAG_FOCALPLANEXRESOLUTION,
+  EXIFTAG_FOCALPLANEYRESOLUTION, EXIFTAG_FOCALPLANERESOLUTIONUNIT,
+  EXIFTAG_SUBJECTLOCATION, EXIFTAG_EXPOSUREINDEX, EXIFTAG_SENSINGMETHOD,
+  EXIFTAG_FILESOURCE, EXIFTAG_SCENETYPE, EXIFTAG_CFAPATTERN,
+  EXIFTAG_CUSTOMRENDERED, EXIFTAG_EXPOSUREMODE, EXIFTAG_WHITEBALANCE,
+  EXIFTAG_DIGITALZOOMRATIO, EXIFTAG_FOCALLENGTHIN35MMFILM,
+  EXIFTAG_SCENECAPTURETYPE, EXIFTAG_GAINCONTROL, EXIFTAG_CONTRAST,
+  EXIFTAG_SATURATION, EXIFTAG_SHARPNESS, EXIFTAG_DEVICESETTINGDESCRIPTION,
+  EXIFTAG_SUBJECTDISTANCERANGE, EXIFTAG_GAINCONTROL, EXIFTAG_GAINCONTROL,
+  EXIFTAG_IMAGEUNIQUEID
+};
+static int nExifTags = sizeof(exif_tag_ids) / sizeof(exif_tag_ids[0]);
 
 /**
 Read a single Exif tag
@@ -575,43 +640,10 @@ tiff_read_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 
 	// loop over all Core Directory Tags
 	// ### uses private data, but there is no other way
-	if(md_model == TagLib::EXIF_MAIN) {
-		const TIFFDirectory *td = &tif->tif_dir;
-
-		uint32_t lastTag = 0;	//<- used to prevent reading some tags twice (as stored in tif_fieldinfo)
-
-		for (int fi = 0, nfi = (int)tif->tif_nfields; nfi > 0; nfi--, fi++) {
-			const TIFFField *fld = tif->tif_fields[fi];
-
-			const uint32_t tag_id = TIFFFieldTag(fld);
-
-			if(tag_id == lastTag) {
-				continue;
-			}
-
-			// test if tag value is set
-			// (lifted directly from LibTiff _TIFFWriteDirectory)
-
-			if( fld->field_bit == FIELD_CUSTOM ) {
-				int is_set = FALSE;
-
-				for(int ci = 0; ci < td->td_customValueCount; ci++ ) {
-					is_set |= (td->td_customValues[ci].info == fld);
-				}
-
-				if( !is_set ) {
-					continue;
-				}
-
-			} else if(!TIFFFieldSet(tif, fld->field_bit)) {
-				continue;
-			}
-
-			// process *all* other tags (some will be ignored)
-
-			tiff_read_exif_tag(tif, tag_id, dib, md_model);
-
-			lastTag = tag_id;
+	// -> conan: Best we can do without private headers is to hard-code a list of known EXIF tags and read those
+	if (md_model == TagLib::EXIF_MAIN) {
+		for (int i = 0; i < nExifTags; ++i) {
+			tiff_read_exif_tag(tif, exif_tag_ids[i], dib, md_model);
 		}
 
 	}
@@ -723,10 +755,9 @@ tiff_write_exif_tags(TIFF *tif, TagLib::MDMODEL md_model, FIBITMAP *dib) {
 	
 	TagLib& tag_lib = TagLib::instance();
 	
-	for (int fi = 0, nfi = (int)tif->tif_nfields; nfi > 0; nfi--, fi++) {
-		const TIFFField *fld = tif->tif_fields[fi];
-		
-		const uint32_t tag_id = TIFFFieldTag(fld);
+	for (int fi = 0, nfi = nExifTags; nfi > 0; nfi--, fi++) {
+		const uint32 tag_id = exif_tag_ids[fi];
+		const TIFFField* fld = TIFFFieldWithTag(tif, tag_id);
 
 		if(skip_write_field(tif, tag_id)) {
 			// skip tags that are already handled by the LibTIFF writing process

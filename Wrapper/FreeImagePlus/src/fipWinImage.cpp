@@ -21,7 +21,7 @@
 
 #include "FreeImagePlus.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && WINAPI_FAMILY != WINAPI_FAMILY_APP
 
 // marker used for clipboard copy / paste
 

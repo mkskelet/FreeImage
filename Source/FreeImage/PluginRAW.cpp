@@ -19,9 +19,7 @@
 // Use at your own risk!
 // ==========================================================
 
-#if INCLUDE_LIB_RAW
-
-#include "../LibRawLite/libraw/libraw.h"
+#include <libraw/libraw.h>
 
 #include "FreeImage.h"
 #include "Utilities.h"
@@ -800,5 +798,3 @@ InitRAW(Plugin *plugin, int format_id) {
 	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 	plugin->supports_no_pixels_proc = SupportsNoPixels;
 }
-
-#endif

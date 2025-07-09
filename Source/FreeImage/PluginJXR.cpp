@@ -19,13 +19,11 @@
 // Use at your own risk!
 // ==========================================================
 
-#if INCLUDE_LIB_JXR
-
 #include "FreeImage.h"
 #include "Utilities.h"
 #include "../Metadata/FreeImageTag.h"
 
-#include "../LibJXR/jxrgluelib/JXRGlue.h"
+#include <JXRGlue.h>
 
 // ==========================================================
 // Plugin Interface
@@ -1489,5 +1487,3 @@ InitJXR(Plugin *plugin, int format_id) {
 	plugin->supports_icc_profiles_proc = SupportsICCProfiles;
 	plugin->supports_no_pixels_proc = SupportsNoPixels;
 }
-
-#endif

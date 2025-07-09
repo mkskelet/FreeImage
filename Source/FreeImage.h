@@ -166,10 +166,10 @@ FI_STRUCT (FIMULTIBITMAP) { void *data; };
         #define LONG int32_t
     #endif
     #ifndef INT64
-        #define INT64 int64_t
+        #define INT64 long long int
     #endif
     #ifndef UINT64
-        #define UINT64 uint64_t
+        #define UINT64 long long unsigned int
     #endif
 #else
     // MS is not C99 ISO compliant
@@ -438,16 +438,20 @@ FI_ENUM(FREE_IMAGE_FORMAT) {
 	FIF_DDS		= 24,
 	FIF_GIF     = 25,
 	FIF_HDR		= 26,
+/* conan: The G3 fax format plugin is deliberately disabled in our build of
+   FreeImage, since it requires usage of the vendored copy of libtiff. */
+#if 0
 	FIF_FAXG3	= 27,
-	FIF_SGI		= 28,
-	FIF_EXR		= 29,
-	FIF_J2K		= 30,
-	FIF_JP2		= 31,
-	FIF_PFM		= 32,
-	FIF_PICT	= 33,
-	FIF_RAW		= 34,
-	FIF_WEBP	= 35,
-	FIF_JXR		= 36
+#endif
+	FIF_SGI		= 27,
+	FIF_EXR		= 28,
+	FIF_J2K		= 29,
+	FIF_JP2		= 30,
+	FIF_PFM		= 31,
+	FIF_PICT	= 32,
+	FIF_RAW		= 33,
+	FIF_WEBP	= 34,
+	FIF_JXR		= 35
 };
 
 /** Image type used in FreeImage.
@@ -504,6 +508,9 @@ FI_ENUM(FREE_IMAGE_DITHER) {
 /** Lossless JPEG transformations
 Constants used in FreeImage_JPEGTransform
 */
+/* conan: The JPEGTransform functions are deliberately disabled in our build
+   of FreeImage, since they require usage of the vendored copy of libjpeg. */
+#if 0
 FI_ENUM(FREE_IMAGE_JPEG_OPERATION) {
 	FIJPEG_OP_NONE			= 0,	//! no transformation
 	FIJPEG_OP_FLIP_H		= 1,	//! horizontal flip
@@ -514,6 +521,7 @@ FI_ENUM(FREE_IMAGE_JPEG_OPERATION) {
 	FIJPEG_OP_ROTATE_180	= 6,	//! 180-degree rotation
 	FIJPEG_OP_ROTATE_270	= 7		//! 270-degree clockwise (or 90 ccw)
 };
+#endif
 
 /** Tone mapping operators.
 Constants used in FreeImage_ToneMapping.
@@ -1117,6 +1125,9 @@ DLL_API const char* DLL_CALLCONV FreeImage_TagToString(FREE_IMAGE_MDMODEL model,
 // JPEG lossless transformation routines
 // --------------------------------------------------------------------------
 
+/* conan: The JPEGTransform functions are deliberately disabled in our build
+   of FreeImage, since they require usage of the vendored copy of libjpeg. */
+#if 0
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransform(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformU(const wchar_t *src_file, const wchar_t *dst_file, FREE_IMAGE_JPEG_OPERATION operation, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGCrop(const char *src_file, const char *dst_file, int left, int top, int right, int bottom);
@@ -1125,7 +1136,7 @@ DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformFromHandle(FreeImageIO* src_io,
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombined(const char *src_file, const char *dst_file, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombinedU(const wchar_t *src_file, const wchar_t *dst_file, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
 DLL_API BOOL DLL_CALLCONV FreeImage_JPEGTransformCombinedFromMemory(FIMEMORY* src_stream, FIMEMORY* dst_stream, FREE_IMAGE_JPEG_OPERATION operation, int* left, int* top, int* right, int* bottom, BOOL perfect FI_DEFAULT(TRUE));
-
+#endif
 
 // --------------------------------------------------------------------------
 // Image manipulation toolkit

@@ -37,9 +37,9 @@
 
 #include "FreeImage.h"
 #include "Utilities.h"
-#include "../LibTIFF4/tiffiop.h"
+#include <tiffio.h>
 #include "../Metadata/FreeImageTag.h"
-#include "../OpenEXR/Half/half.h"
+#include <OpenEXR/half.h>
 
 #include "FreeImageIO.h"
 #include "PSDParser.h"
@@ -201,6 +201,7 @@ TIFFFdOpen(thandle_t handle, const char *name, const char *mode) {
 //   TIFF library FreeImage-specific routines.
 // ----------------------------------------------------------
 
+/*
 void*
 _TIFFmalloc(tmsize_t s) {
 	if (s == 0)
@@ -240,6 +241,7 @@ int
 _TIFFmemcmp(const void* p1, const void* p2, tmsize_t c) {
 	return memcmp(p1, p2, (size_t)c);
 }
+*/
 
 // ----------------------------------------------------------
 //   in FreeImage warnings and errors are disabled
@@ -250,7 +252,7 @@ static void
 msdosWarningHandler(const char* module, const char* fmt, va_list ap) {
 }
 
-TIFFErrorHandler _TIFFwarningHandler = msdosWarningHandler;
+//TIFFErrorHandler _TIFFwarningHandler = msdosWarningHandler;
 
 static void
 msdosErrorHandler(const char* module, const char* fmt, va_list ap) {
@@ -265,7 +267,7 @@ msdosErrorHandler(const char* module, const char* fmt, va_list ap) {
 	*/
 }
 
-TIFFErrorHandler _TIFFerrorHandler = msdosErrorHandler;
+//TIFFErrorHandler _TIFFerrorHandler = msdosErrorHandler;
 #endif // ndef _WIN32
 // ----------------------------------------------------------
 
@@ -2735,6 +2737,11 @@ InitTIFF(Plugin *plugin, int format_id) {
     // Set up the callback for extended TIFF directory tag support (see XTIFF.cpp)
 	// Must be called before using libtiff
     XTIFFInitialize();
+
+#ifndef _WIN32
+	TIFFSetWarningHandler(msdosWarningHandler);
+	TIFFSetErrorHandler(msdosErrorHandler);
+#endif
 
 	plugin->format_proc = Format;
 	plugin->description_proc = Description;
