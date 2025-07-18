@@ -37,7 +37,8 @@
 #include <OpenEXR/ImfRgba.h>
 #include <OpenEXR/ImfArray.h>
 #include <OpenEXR/ImfPreviewImage.h>
-#include <OpenEXR/half.h>
+#include <Imath/ImathInt64.h>
+#include <Imath/half.h>
 
 
 // ==========================================================
