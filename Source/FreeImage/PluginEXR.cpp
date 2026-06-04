@@ -399,7 +399,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 			Imf::FrameBuffer frameBuffer;
 
 			// allow dataWindow with minimal bounds different form zero
-			size_t offset = - dataWindow.min.x * bytespp - dataWindow.min.y * pitch;
+			ptrdiff_t offset = - (ptrdiff_t)dataWindow.min.x * (ptrdiff_t)bytespp - (ptrdiff_t)dataWindow.min.y * (ptrdiff_t)pitch;
 
 			if(components == 1) {
 				frameBuffer.insert ("Y",	// name
