@@ -1417,6 +1417,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 	FIBITMAP *dib = NULL;
 	uint32_t iccSize = 0;		// ICC profile length
 	void *iccBuf = NULL;	// ICC profile data
+	BOOL hasICCProfile = FALSE;	// whether an ICC profile should be attached to the dib
 
 	const BOOL header_only = (flags & FIF_LOAD_NOPIXELS) == FIF_LOAD_NOPIXELS;
 
@@ -1457,7 +1458,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samplesperpixel);
 		TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 		TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);
-		TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
+		hasICCProfile = TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf) ? TRUE : FALSE;
 		TIFFGetFieldDefaulted(tif, TIFFTAG_PLANARCONFIG, &planar_config);
 
 		// check for unsupported formats
@@ -1922,6 +1923,7 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 					ConvertCMYKtoRGBA(dib);
 
 					// The ICC Profile is invalid, clear it
+					hasICCProfile = FALSE;
 					iccSize = 0;
 					iccBuf = NULL;
 
@@ -2315,6 +2317,18 @@ Load(FreeImageIO *io, fi_handle handle, int page, int flags, void *data) {
 		ReadMetadata(io, handle, tif, dib);
 
 		// copy ICC profile data (must be done after FreeImage_Allocate)
+		// ReadMetadata above may switch TIFF directories (e.g. to read the EXIF
+		// IFD), which makes libtiff free/reload the current directory's field
+		// data and invalidates the iccBuf pointer fetched earlier. Re-fetch it
+		// here to avoid a heap-use-after-free. The hasICCProfile flag preserves
+		// the deliberate CMYK->RGB clearing above without consulting the
+		// possibly-dangling iccBuf pointer value.
+
+		iccSize = 0;
+		iccBuf = NULL;
+		if (hasICCProfile) {
+			TIFFGetField(tif, TIFFTAG_ICCPROFILE, &iccSize, &iccBuf);
+		}
 
 		FreeImage_CreateICCProfile(dib, iccBuf, iccSize);
 		if (photometric == PHOTOMETRIC_SEPARATED) {
